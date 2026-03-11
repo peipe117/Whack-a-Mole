@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生詞闖關打地鼠</title>
+    <!-- 引入高質感 Google 字型：Nunito (英文/數字) + Noto Sans TC (繁體中文) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #66BB6A;
+            --primary-dark: #33691E;
+            --secondary: #8BC34A;
+            --accent: #FF9800;
+            --accent-dark: #E65100;
+            --text-dark: #2C3E50;
+            --text-light: #ffffff;
+            --dirt: #4E342E;
+            --sky-top: #A1C4FD;
+            --sky-bottom: #C2E9FB;
+            --bg-panel: #ffffff;
+        }
+
+        body {
+            font-family: 'Nunito', 'Noto Sans TC', sans-serif;
+            margin: 0; padding: 0;
+            background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 40%, var(--primary) 40%, var(--primary-dark) 100%);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; touch-action: manipulation;
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+            color: var(--text-dark);
+            letter-spacing: 0.5px;
+        }
+
+        /* --- 玩具槌游標優化 --- */
+        body.playing {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cg transform='rotate(-10 64 64)'%3E%3Crect x='60' y='60' width='8' height='40' fill='%23FFC107' rx='4' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='60' y='85' width='8' height='15' fill='%2303A9F4' rx='2' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='44' y='45' width='40' height='20' fill='%23F44336' rx='8' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='38' y='47' width='10' height='16' fill='%23FFEB3B' rx='4' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='80' y='47' width='10' height='16' fill='%23FFEB3B' rx='4' stroke='%233E2723' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 64 45, auto;
+        }
+
+        body.playing:active {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cg transform='rotate(-60 64 64)'%3E%3Crect x='60' y='60' width='8' height='40' fill='%23FFC107' rx='4' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='60' y='85' width='8' height='15' fill='%2303A9F4' rx='2' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='44' y='45' width='40' height='20' fill='%23F44336' rx='8' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='38' y='47' width='10' height='16' fill='%23FFEB3B' rx='4' stroke='%233E2723' stroke-width='2'/%3E%3Crect x='80' y='47' width='10' height='16' fill='%23FFEB3B' rx='4' stroke='%233E2723' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 64 45, auto;
+        }
+
+        /* --- 現代化按鈕樣式 --- */
+        .btn-premium {
+            background-color: #FF9800;
+            color: white; border: none; padding: 12px 30px; border-radius: 18px;
+            font-size: 20px; font-weight: 800; cursor: pointer;
+            box-shadow: 0 6px 0 #E65100, 0 10px 20px rgba(230,81,0,0.3);
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: inherit; letter-spacing: 1px;
+        }
+        .btn-premium:hover { filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 8px 0 #E65100, 0 12px 25px rgba(230,81,0,0.3); }
+        .btn-premium:active { transform: translateY(6px); box-shadow: 0 0px 0 #E65100; }
+
+        .btn-secondary {
+            background-color: #90A4AE;
+            box-shadow: 0 6px 0 #607D8B, 0 10px 20px rgba(96,125,139,0.3);
+        }
+        .btn-secondary:hover { box-shadow: 0 8px 0 #607D8B, 0 12px 25px rgba(96,125,139,0.3); }
+        .btn-secondary:active { box-shadow: 0 0px 0 #607D8B; }
+
+        /* --- 頂部控制列 --- */
+        .top-controls { position: fixed; top: 15px; left: 15px; display: flex; gap: 10px; z-index: 9999; }
+        .top-btn { background: rgba(255, 255, 255, 0.9); border: none; border-radius: 14px; height: 44px; padding: 0 15px; font-size: 18px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 0 #CFD8DC; transition: 0.1s; color: var(--text-dark); font-family: inherit; }
+        .top-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #CFD8DC; }
+        
+        .settings-btn-top { position: fixed; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.1s; z-index: 9999; box-shadow: 0 4px 0 #CFD8DC; }
+        .settings-btn-top:active { transform: translateY(4px); box-shadow: 0 0 0 #CFD8DC; }
+        
+        .creator-footer { position: fixed; bottom: 8px; left: 0; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); z-index: 9999; pointer-events: none; letter-spacing: 1px; }
+
+        /* --- 登入畫面 --- */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #E0F2F1 0%, #B2DFDB 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; }
+        .login-box { background: var(--bg-panel); padding: 40px 50px; border-radius: 25px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: none; max-width: 90%; width: 420px; }
+        .login-box h1 { color: #FF7043; font-size: 32px; margin-top: 0; margin-bottom: 20px; font-weight: 900; }
+        .login-box input { font-family: inherit; font-size: 20px; padding: 14px 18px; margin: 10px 0 20px 0; width: 100%; box-sizing: border-box; border-radius: 16px; border: 2px solid #CFD8DC; background: #F8FDFF; text-align: center; outline: none; transition: 0.2s; font-weight: 700; color: var(--text-dark); }
+        .login-box input:focus { border-color: #29B6F6; background: #fff; box-shadow: 0 0 0 4px rgba(41,182,246,0.2); }
+        #nameError { color: #E53935; font-weight: 800; display: none; margin-bottom: 12px; font-size: 15px; }
+
+        .instruction-box { background-color: #FFF8E1; border-radius: 16px; padding: 15px 20px; margin-bottom: 25px; text-align: left; color: #546E7A; font-size: 15px; line-height: 1.5; font-weight: 500; }
+        .instruction-box h3 { margin-top: 0; color: #FF9800; font-size: 18px; text-align: center; margin-bottom: 10px; font-weight: 800; }
+        .instruction-box ul { margin: 0; padding-left: 20px; }
+        .instruction-box li { margin-bottom: 6px; }
+        .instruction-box b { color: #E65100; font-weight: 800; }
+
+        /* --- 遊戲主畫面 --- */
+        #game-screen { display: none; flex-direction: column; align-items: center; width: 100%; padding-top: 60px; /* 為上方的固定按鈕留出空間 */ }
+        header { background-color: rgba(255, 255, 255, 0.95); padding: 12px 20px; border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); margin-top: 0px; text-align: center; max-width: 95%; width: 650px; box-sizing: border-box; backdrop-filter: blur(10px); }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h1.game-title { margin: 0; color: #FF7043; font-size: 22px; font-weight: 900; }
+        .player-greeting { font-size: 15px; font-weight: 800; color: #0288D1; background: #E1F5FE; padding: 4px 10px; border-radius: 10px; }
+        
+        /* 修改：合併為單一控制列，電腦版自動排成一行，手機版自動換行 */
+        .controls-row { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 10px; width: 100%; }
+        
+        /* 增加 max-width 讓選單在排成一排時不會佔用過多空間 */
+        select { font-family: inherit; font-size: 14px; padding: 6px 10px; border-radius: 10px; border: 2px solid #CFD8DC; font-weight: 700; color: var(--text-dark); background: #F8FDFF; outline: none; cursor: pointer; transition: 0.2s; max-width: 180px; }
+        select:focus { border-color: #29B6F6; }
+        
+        .btn-start-small { font-family: inherit; background-color: #66BB6A; padding: 6px 14px; font-size: 15px; color: white; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #388E3C; transition: 0.1s; letter-spacing: 0.5px;}
+        .btn-start-small:active { transform: translateY(4px); box-shadow: 0 0px 0 #388E3C; }
+        .btn-home-small { background-color: #EF5350; box-shadow: 0 4px 0 #C62828; }
+        .btn-home-small:active { box-shadow: 0 0px 0 #C62828; }
+        .btn-pause-small { background-color: #AB47BC; box-shadow: 0 4px 0 #6A1B9A; }
+        .btn-pause-small:active { box-shadow: 0 0px 0 #6A1B9A; }
+        .share-btn { background-color: #29B6F6; color: white; border: none; font-size: 16px; padding: 6px 12px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 0 #0277BD; transition: 0.1s; }
+        .share-btn:active { transform: translateY(4px); box-shadow: 0 0px 0 #0277BD; }
+
+        .status-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .options-row { display: flex; justify-content: center; gap: 15px; font-size: 13px; background: #F5F5F5; padding: 6px 12px; border-radius: 10px; font-weight: 700; color: #546E7A; margin-bottom: 0; }
+        .options-row label { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .options-row input { width: 14px; height: 14px; cursor: pointer; accent-color: #29B6F6;}
+
+        .status-panel { display: flex; justify-content: space-between; align-items: center; background: #F1F8E9; padding: 6px 12px; border-radius: 12px; border: 2px solid #C5E1A5; flex-grow: 1; }
+        .progress-wrapper { flex-grow: 1; margin-right: 10px; text-align: left; }
+        .progress-text { font-size: 13px; font-weight: 800; color: #558B2F; margin-bottom: 4px; }
+        .progress-bar { width: 100%; height: 10px; background-color: #E8F5E9; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+        .progress-fill { height: 100%; background-color: #66BB6A; width: 0%; transition: width 0.4s ease-out; border-radius: 6px; }
+        .timer-box { font-size: 15px; font-weight: 900; color: #0288D1; background: white; padding: 4px 10px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 2px solid #81D4FA; }
+
+        /* --- 題目區 --- */
+        .target-container { margin: 8px 0; background: white; padding: 10px 30px; border-radius: 20px; box-shadow: 0 6px 0 #FFB300, 0 10px 15px rgba(0,0,0,0.15); border: 3px solid #FFCA28; text-align: center; min-width: 250px; z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .target-label { font-size: 12px; font-weight: 800; color: #FF9800; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;}
+        .target-word { font-size: 28px; color: #D84315; font-weight: 900; line-height: 1.1;}
+        .target-zhuyin { font-size: 18px; color: #8E24AA; font-weight: 800; letter-spacing: 2px; margin-top: 2px;}
+        .target-pinyin { font-size: 14px; color: #1976D2; font-weight: 700; margin-top: 0px;}
+
+        /* --- 地鼠設計 --- */
+        .game-board { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            margin-bottom: 10px; 
+            padding: 12px; 
+            width: 95vw; 
+            max-width: 600px; 
+            min-width: 300px;
+            aspect-ratio: 1 / 1;
+            background: rgba(255,255,255,0.1); 
+            border-radius: 25px; 
+        }
+        .hole-container { position: relative; width: 100%; height: 100%; padding-top: 0; }
+        .hole { position: absolute; bottom: 0; left: 5%; width: 90%; height: 35%; background-color: var(--dirt); border-radius: 50%; box-shadow: inset 0 8px 15px rgba(0,0,0,0.8); }
+        .hole-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; border-radius: 25px; }
+        
+        .mole {
+            position: absolute; width: 75%; height: 75%; left: 12.5%; top: 100%;
+            background-color: #A1887F; border-radius: 50% 50% 15% 15%;
+            transition: top 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: inset -4px -4px 10px rgba(0,0,0,0.2);
+        }
+        .mole.up { top: 20%; }
+        .mole::before, .mole::after { content: ''; position: absolute; top: -10px; width: 24px; height: 24px; background-color: #8D6E63; border-radius: 50%; z-index: -1; }
+        .mole::before { left: -2px; } .mole::after { right: -2px; }
+
+        .mole-face, .mole-belly, .target-word, .target-zhuyin, .target-pinyin { pointer-events: none; }
+        .mole-belly { 
+            width: 85%; flex-grow: 1; background-color: #FFE0B2; border-radius: 35% 35% 10% 10%; margin-top: 4px; display: flex; align-items: center; justify-content: center; 
+            font-size: clamp(14px, 3.5vw, 24px); 
+            font-weight: 900; color: #3E2723; text-align: center; line-height: 1.1; padding: 4px; box-sizing: border-box; box-shadow: inset 0 3px 6px rgba(0,0,0,0.05);
+        }
+        .mole-face { margin-top: 10px; position: relative; width: 100%; display: flex; justify-content: center; }
+        .eye { width: 8px; height: 8px; background: #212121; border-radius: 50%; margin: 0 8px; position: relative; }
+        .eye::after { content: ''; position: absolute; top: 1px; left: 1px; width: 3px; height: 3px; background: #fff; border-radius: 50%; }
+        .nose { position: absolute; bottom: -6px; width: 10px; height: 6px; background: #3E2723; border-radius: 50%; }
+
+        /* Overlays & Modals */
+        #overlay, #pause-overlay, #settings-modal, #install-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(38, 50, 56, 0.85); display: none; justify-content: center; align-items: center; z-index: 300; backdrop-filter: blur(5px); }
+        
+        .result-box { background: white; padding: 40px 50px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: none; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto; }
+        .result-box h2 { font-size: 32px; margin-top: 0; color: #FF7043; font-weight: 900; }
+        .time-score { font-size: 40px; color: #4CAF50; font-weight: 900; margin: 15px 0; text-shadow: 1px 1px 0px #C8E6C9;}
+
+        .pause-box { background: white; padding: 30px 40px; border-radius: 25px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .pause-box h2 { font-size: 30px; margin-top: 0; color: #9C27B0; font-weight: 900; margin-bottom: 20px; }
+
+        .settings-box { background: white; padding: 30px 40px; border-radius: 25px; width: 90%; max-width: 600px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .settings-box h2 { color: #F4511E; margin-top: 0; font-weight: 900; font-size: 24px;}
+        .settings-box textarea { font-family: 'Nunito', monospace; font-size: 15px; border: 2px solid #CFD8DC; border-radius: 12px; background: #F8FDFF; outline: none;}
+        .settings-box textarea:focus { border-color: #29B6F6; }
+
+        /* 特效區 */
+        .mole.wrong { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        #comboDisplay { position: absolute; top: 60px; right: 30px; font-size: 32px; color: #FF4081; font-weight: 900; text-shadow: 3px 3px 0 #fff, -1px -1px 0 #fff; transform: rotate(-10deg); display: none; z-index: 50; pointer-events: none; }
+        .hit-particle { position: fixed; width: 12px; height: 12px; border-radius: 50%; pointer-events: none; z-index: 99999; }
+        .confetti { position: fixed; top: -20px; width: 14px; height: 28px; z-index: 99999; pointer-events: none; animation: confettiFall linear forwards; border-radius: 4px; }
+        @keyframes confettiFall { to { transform: translateY(110vh) rotate(720deg); } }
+        .floating-text { position: absolute; font-size: 32px; font-weight: 900; pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100; }
+        .floating-text.positive { color: #FFEB3B; text-shadow: 3px 3px 0 #FF9800, -2px -2px 0 #fff; }
+        .floating-text.negative { color: #FF5252; text-shadow: 3px 3px 0 #B71C1C, -2px -2px 0 #fff; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-60px) scale(1.5); opacity: 0; } }
+
+        #toast-msg { visibility: hidden; opacity: 0; min-width: 220px; background: #37474F; color: #fff; text-align: center; border-radius: 16px; padding: 12px 18px; position: fixed; z-index: 99999; left: 50%; bottom: 40px; transform: translateX(-50%); transition: 0.3s; pointer-events: none; font-weight: 700; font-size: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        #toast-msg.show { visibility: visible; opacity: 1; bottom: 50px; }
+
+        /* 手機版防重疊排版微調 */
+        @media (max-width: 600px) {
+            .top-controls { top: 10px; left: 10px; gap: 5px; }
+            .top-btn { font-size: 14px; height: 38px; padding: 0 10px; border-radius: 10px; }
+            .settings-btn-top { top: 10px; right: 10px; width: 38px; height: 38px; font-size: 16px; }
+            
+            /* 將主畫面往下推，避免被頂部按鈕遮擋 */
+            #login-screen, #game-screen { padding-top: 60px; } 
+            
+            .login-box, .result-box, .pause-box { padding: 25px; }
+            .login-box h1 { font-size: 26px; }
+            header { padding: 10px 10px; margin-top: 0; }
+            
+            .header-top { flex-direction: column; gap: 8px; margin-bottom: 8px; }
+            h1.game-title { font-size: 20px; text-align: center; }
+            
+            /* 手機版允許彈性換行，並稍微限制選單寬度 */
+            .controls-row { flex-direction: row; justify-content: center; gap: 6px; margin-bottom: 8px; }
+            select, .btn-start-small, .share-btn { font-size: 13px; padding: 6px 8px; }
+            select { max-width: 45%; }
+            
+            .target-word { font-size: 24px; }
+            #comboDisplay { top: 50px; right: 10px; font-size: 24px; }
+            .status-row { flex-direction: column; align-items: stretch; }
+            .status-panel { margin-top: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <button class="top-btn" onclick="toggleFullScreen()" title="全螢幕 / Fullscreen">⛶</button>
+        <button class="top-btn" onclick="toggleLanguage()" title="切換語言 / Switch Language">🌐 EN/中</button>
+        <!-- 新增：加到主畫面 APP 指示按鈕 -->
+        <button class="top-btn" onclick="document.getElementById('install-modal').style.display='flex'" title="加到主畫面 / App">📱 APP</button>
+    </div>
+    
+    <button class="settings-btn-top" onclick="document.getElementById('settings-modal').style.display='flex'" title="設定 / Settings">⚙️</button>
+    
+    <div class="creator-footer">Created by Sophia Wong</div>
+
+    <!-- 1. 歡迎登入畫面 -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h1 data-i18n="title">🐹 生詞闖關打地鼠</h1>
+            
+            <div class="instruction-box">
+                <h3 data-i18n="howToPlay">🎮 怎麼玩？</h3>
+                <ul>
+                    <li data-i18n="inst1">看上面：注意畫面最上方的<b>「目標生詞」</b>（有拼音、注音和英文提示）。</li>
+                    <li data-i18n="inst2">找地鼠：找出肚子上寫著<b>正確生詞</b>的地鼠。</li>
+                    <li data-i18n="inst3">敲下去：用你的<b>大玩具槌</b>用力敲牠！打錯的話要重新挑戰喔。</li>
+                </ul>
+            </div>
+
+            <p style="margin:0 0 10px 0; font-size: 18px; font-weight: 800; color: var(--text-dark);" data-i18n="enterName">請先輸入你的姓名：</p>
+            <input type="text" id="playerNameInput" data-i18n-placeholder="placeholderName" placeholder="例如：大文" onkeypress="handleEnter(event)">
+            <br>
+            <button class="btn-premium" onclick="enterGame()" data-i18n="btnEnter">🚀 進入遊戲</button>
+            <div id="nameError" data-i18n="errName">⚠️ 記得填寫姓名喔！</div>
+        </div>
+    </div>
+
+    <!-- 2. 遊戲主畫面 -->
+    <div id="game-screen">
+        <div id="comboDisplay"></div>
+        <header>
+            <div class="header-top">
+                <h1 class="game-title" data-i18n="title">🐹 生詞闖關打地鼠</h1>
+                <span class="player-greeting"><span data-i18n="player">玩家：</span><span id="displayPlayerName"></span></span>
+            </div>
+            <!-- 合併後的控制區塊 -->
+            <div class="controls-row">
+                <select id="lesson-select"></select>
+                <select id="difficulty-select">
+                    <option value="easy" data-i18n="diffEasy">🟢 簡單</option>
+                    <option value="normal" selected data-i18n="diffNormal">🟡 中等</option>
+                    <option value="hard" data-i18n="diffHard">🔴 困難</option>
+                </select>
+                <button class="btn-start-small btn-home-small" onclick="goToHome()" data-i18n="btnHome">🏠 首頁</button>
+                <button class="share-btn" onclick="copyLessonLink()" title="複製連結">🔗</button>
+                <button class="btn-start-small" onclick="startGame()" data-i18n="btnStart">▶️ 開始</button>
+                <button class="btn-start-small btn-pause-small" id="pauseBtn" onclick="togglePause()" style="display:none;" data-i18n="btnPause">⏸️ 暫停</button>
+            </div>
+            <div class="status-row">
+                <div class="options-row">
+                    <label><input type="checkbox" id="showEn" checked onchange="applyToggles()"> <span data-i18n="lblEn">英文</span></label>
+                    <label><input type="checkbox" id="showZy" checked onchange="applyToggles()"> <span data-i18n="lblZy">注音</span></label>
+                    <label><input type="checkbox" id="showPy" checked onchange="applyToggles()"> <span data-i18n="lblPy">拼音</span></label>
+                </div>
+                <div class="status-panel">
+                    <div class="progress-wrapper">
+                        <div class="progress-text" id="progressText">進度: 0 / 0</div>
+                        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                    </div>
+                    <div class="timer-box">⏱️ <span id="timeDisplay">0</span>s</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="target-container" id="target-container" style="visibility: hidden;">
+            <div class="target-label" data-i18n="findWord">Find (請找出):</div>
+            <div class="target-word" id="targetWord">...</div>
+            <div class="target-zhuyin" id="targetZhuyin">...</div>
+            <div class="target-pinyin" id="targetPinyin">...</div>
+        </div>
+        <div class="game-board" id="board"></div>
+    </div>
+
+    <!-- 3. 過關慶祝畫面 -->
+    <div id="overlay">
+        <div class="result-box">
+            <h2 id="resultTitle">🎉 完美過關！ 🎉</h2>
+            <div class="time-score"><span id="finalTime">0</span> s</div>
+            <div id="mistakes-container" style="display:none; margin: 15px 0; background: #FFF8E1; padding: 12px; border-radius: 15px; border: 2px dashed #FFCA28;">
+                <h3 style="color:#D84315; font-size:16px; margin-top:0;" data-i18n="reviewTitle">再複習一下：</h3>
+                <div id="mistakesList" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center;"></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px; align-items:center; margin-top: 20px;">
+                <button class="btn-premium" onclick="restartSameGame()" style="width: 100%;" data-i18n="btnPlayAgain">🌟 再玩一局 🌟</button>
+                <button class="btn-premium btn-secondary" onclick="goToHome()" style="width: 100%;" data-i18n="btnHome">🏠 首頁</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 暫停畫面 -->
+    <div id="pause-overlay">
+        <div class="pause-box">
+            <h2 data-i18n="pauseTitle">⏸️ 暫停中</h2>
+            <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+                <button class="btn-premium" onclick="togglePause()" style="width: 100%;" data-i18n="btnResume">▶️ 繼續遊戲</button>
+                <button class="btn-premium btn-secondary" onclick="goToHome()" style="width: 100%;" data-i18n="btnQuit">⏹️ 結束遊戲</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：APP 加入主畫面指示視窗 -->
+    <div id="install-modal">
+        <div class="settings-box">
+            <h2 data-i18n="installTitle">📱 加到手機主畫面</h2>
+            <div style="text-align: left; color: #546E7A; font-size: 16px; line-height: 1.6; margin: 20px 0; background: #FFF8E1; padding: 15px; border-radius: 15px;">
+                <p data-i18n="installApple" style="margin-top: 0;"><b>🍎 蘋果 iOS (Safari)：</b><br>點擊下方選單的「分享」圖示 <b>[↑]</b>，然後選擇「加入主畫面」。</p>
+                <hr style="border: 0; border-top: 1px solid #CFD8DC; margin: 15px 0;">
+                <p data-i18n="installAndroid" style="margin-bottom: 0;"><b>🤖 安卓 Android (Chrome)：</b><br>點擊右上角選單 <b>[⋮]</b>，然後選擇「加到主畫面」。</p>
+            </div>
+            <div style="text-align:center;">
+                <button class="btn-premium" onclick="document.getElementById('install-modal').style.display='none'" data-i18n="btnGotIt">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 教師設定視窗 -->
+    <div id="settings-modal">
+        <div class="settings-box">
+            <h2 data-i18n="settingsTitle">⚙️ 匯入題庫 (CSV格式)</h2>
+            <textarea id="csvInput" rows="10" style="width:100%; padding:15px; box-sizing: border-box;" data-i18n-placeholder="csvPlaceholder" placeholder="L1,生詞,注音,拼音,英文"></textarea>
+            <div style="margin-top:20px; text-align:right; gap:12px; display:flex; justify-content:flex-end;">
+                <button class="btn-start-small btn-secondary" onclick="restoreDefaultVocab()" data-i18n="btnRestore">還原預設</button>
+                <button class="btn-start-small" onclick="saveCustomVocab()" data-i18n="btnSave">儲存</button>
+                <button class="btn-start-small btn-home-small" onclick="document.getElementById('settings-modal').style.display='none'" data-i18n="btnCancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-msg">連結已複製！</div>
+
+    <script>
+    // === 雙語字典設定 (i18n) ===
+    const translations = {
+        zh: {
+            title: "🐹 生詞闖關打地鼠",
+            howToPlay: "🎮 怎麼玩？",
+            inst1: "看上面：注意畫面最上方的<b>「目標生詞」</b>（有拼音、注音和英文提示）。",
+            inst2: "找地鼠：找出肚子上寫著<b>正確生詞</b>的地鼠。",
+            inst3: "敲下去：用你的<b>大玩具槌</b>用力敲牠！打錯的話要重新挑戰喔。",
+            enterName: "請先輸入你的姓名：",
+            placeholderName: "例如：大文",
+            btnEnter: "🚀 進入遊戲",
+            errName: "⚠️ 記得填寫姓名喔！",
+            player: "玩家：",
+            btnStart: "▶️ 開始",
+            btnHome: "🏠 首頁",
+            btnPause: "⏸️ 暫停",
+            btnResume: "▶️ 繼續遊戲",
+            btnQuit: "⏹️ 結束遊戲",
+            lblEn: "英文",
+            lblZy: "注音",
+            lblPy: "拼音",
+            progress: "進度",
+            reviewProgress: "👀 錯題複習",
+            findWord: "Find (請找出):",
+            reviewTitle: "再複習一下：",
+            btnPlayAgain: "🌟 再玩一局 🌟",
+            pauseTitle: "⏸️ 暫停中",
+            settingsTitle: "⚙️ 匯入題庫 (CSV格式)",
+            csvPlaceholder: "L1,生詞,注音,拼音,英文\n(每行一個字，用逗號隔開)",
+            btnRestore: "還原預設",
+            btnSave: "儲存",
+            btnCancel: "取消",
+            toastCopied: "✅ 連結已複製！",
+            toastReview: "👀 進入錯題複習階段！",
+            diffEasy: "🟢 簡單",
+            diffNormal: "🟡 中等",
+            diffHard: "🔴 困難",
+            combo: "連擊!",
+            lessonPrefix: "第",
+            lessonSuffix: "課",
+            allChallenge: "🏆 終極挑戰",
+            installTitle: "📱 加到手機主畫面",
+            installApple: "<b>🍎 蘋果 iOS (Safari)：</b><br>點擊下方選單的「分享」圖示 <b>[↑]</b>，然後選擇「加入主畫面」。",
+            installAndroid: "<b>🤖 安卓 Android (Chrome)：</b><br>點擊右上角選單 <b>[⋮]</b>，然後選擇「加到主畫面」。",
+            btnGotIt: "我知道了"
+        },
+        en: {
+            title: "🐹 Whack-a-Mole Vocab",
+            howToPlay: "🎮 How to Play?",
+            inst1: "Look Up: Check the <b>Target Word</b> at the top (with Pinyin, Zhuyin, and English).",
+            inst2: "Find the Mole: Find the mole with the <b>correct word</b> on its belly.",
+            inst3: "Whack it: Hit it with your <b>toy hammer</b>! Incorrect hits mean you try again.",
+            enterName: "Please enter your name:",
+            placeholderName: "e.g., Kevin",
+            btnEnter: "🚀 Enter Game",
+            errName: "⚠️ Please enter your name!",
+            player: "Player: ",
+            btnStart: "▶️ Start",
+            btnHome: "🏠 Home",
+            btnPause: "⏸️ Pause",
+            btnResume: "▶️ Resume",
+            btnQuit: "⏹️ Quit Game",
+            lblEn: "English",
+            lblZy: "Zhuyin",
+            lblPy: "Pinyin",
+            progress: "Progress",
+            reviewProgress: "👀 Review",
+            findWord: "Find:",
+            reviewTitle: "Let's review:",
+            btnPlayAgain: "🌟 Play Again 🌟",
+            pauseTitle: "⏸️ Paused",
+            settingsTitle: "⚙️ Import Vocab (CSV)",
+            csvPlaceholder: "L1,Word,Zhuyin,Pinyin,English\n(One word per line, comma separated)",
+            btnRestore: "Restore Default",
+            btnSave: "Save",
+            btnCancel: "Cancel",
+            toastCopied: "✅ Link Copied!",
+            toastReview: "👀 Entering Review Mode!",
+            diffEasy: "🟢 Easy",
+            diffNormal: "🟡 Normal",
+            diffHard: "🔴 Hard",
+            combo: "Combo!",
+            lessonPrefix: "Lesson ",
+            lessonSuffix: "",
+            allChallenge: "🏆 Ultimate Challenge",
+            installTitle: "📱 Add to Home Screen",
+            installApple: "<b>🍎 Apple iOS (Safari):</b><br>Tap the 'Share' icon <b>[↑]</b> at the bottom, then select 'Add to Home Screen'.",
+            installAndroid: "<b>🤖 Android (Chrome):</b><br>Tap the menu icon <b>[⋮]</b> at the top right, then select 'Add to Home screen'.",
+            btnGotIt: "Got it!"
+        }
+    };
+    let currentLang = 'zh';
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+        
+        const select = document.getElementById('lesson-select');
+        const currentLesson = select ? select.value : 'L1';
+        
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[currentLang][key]) {
+                el.innerHTML = translations[currentLang][key];
+            }
+        });
+        
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[currentLang][key]) {
+                el.placeholder = translations[currentLang][key];
+            }
+        });
+
+        updateLessonDropdown();
+        updateProgressUI();
+        if (select) document.getElementById('lesson-select').value = currentLesson;
+        
+        if(!isPlaying && !isPaused && document.getElementById('overlay').style.display === 'flex'){
+            const resTitle = document.getElementById('resultTitle');
+            if(resTitle) resTitle.innerHTML = currentLang === 'en' ? `🎉 ${globalPlayerName}, Level Cleared! 🎉` : `🎉 ${globalPlayerName}，完美過關！ 🎉`;
+        }
+    }
+
+
+    // === 題庫資料 ===
+    let vocabData = {
+        L1: [{ch:'新',zy:'ㄒㄧㄣ',py:'xīn',en:'new'},{ch:'現在',zy:'ㄒㄧㄢˋ ㄗㄞˋ',py:'xiàn zài',en:'now'},{ch:'介紹',zy:'ㄐㄧㄝˋ ㄕㄠˋ',py:'jiè shào',en:'introduce'},{ch:'自己',zy:'ㄗˋ ㄐㄧˇ',py:'zì jǐ',en:"oneself"},{ch:'大家',zy:'ㄉㄚˋ ㄐㄧㄚ',py:'dà jiā',en:'everyone'},{ch:'今年',zy:'ㄐㄧㄣ ㄋㄧㄢˊ',py:'jīn nián',en:'this year'},{ch:'跟',zy:'ㄍㄣ',py:'gēn',en:'with'},{ch:'游泳',zy:'ㄧㄡˊ ㄩㄥˇ',py:'yóu yǒng',en:'swim'},{ch:'比較',zy:'ㄅㄧˇ ㄐㄧㄠˋ',py:'bǐ jiào',en:'compare'},{ch:'看書',zy:'ㄎㄢˋ ㄕㄨ',py:'kàn shū',en:'read'},{ch:'高興',zy:'ㄍㄠ ㄒㄧㄥˋ',py:'gāo xìng',en:'happy'},{ch:'認識',zy:'ㄖㄣˋ ㄕˋ',py:'rèn shi',en:'know'},{ch:'歡迎',zy:'ㄏㄨㄢ ㄧㄥˊ',py:'huān yíng',en:'welcome'},{ch:'華語',zy:'ㄏㄨㄚˊ ㄩˇ',py:'huá yǔ',en:'Mandarin'},{ch:'學',zy:'ㄒㄩㄝˊ',py:'xué',en:'learn'},{ch:'最',zy:'ㄗㄨㄟˋ',py:'zuì',en:'most'}],
+        L2: [{ch:'外公',zy:'ㄨㄞˋ ㄍㄨㄥ',py:'wài gōng',en:'grandfather'},{ch:'以前',zy:'ㄧˇ ㄑㄧㄢˊ',py:'yǐ qián',en:'before'},{ch:'外婆',zy:'ㄨㄞˋ ㄆㄛˊ',py:'wài pó',en:'grandmother'},{ch:'做生意',zy:'ㄗㄨㄛˋ ㄕㄥ ㄧˋ',py:'zuò shēng yì',en:'do business'},{ch:'幫',zy:'ㄅㄤ',py:'bāng',en:'help'},{ch:'醫生',zy:'ㄧ ㄕㄥ',py:'yī shēng',en:'doctor'},{ch:'工作',zy:'ㄍㄨㄥ ㄗㄨㄛˋ',py:'gōng zuò',en:'work'},{ch:'銀行',zy:'ㄧㄣˊ ㄏㄤˊ',py:'yín háng',en:'bank'},{ch:'一樣',zy:'ㄧˊ ㄧㄤˋ',py:'yí yàng',en:'same'},{ch:'電腦公司',zy:'ㄉㄧㄢˋ ㄋㄠˇ ㄍㄨㄥ ㄙ',py:'computer company',en:'IT company'},{ch:'上班',zy:'ㄕㄤˋ ㄅㄢ',py:'shàng bān',en:'go to work'},{ch:'以後',zy:'ㄧˇ ㄏㄡˋ',py:'yǐ hòu',en:'after'}],
+        L3: [{ch:'要',zy:'ㄧㄠˋ',py:'yào',en:'want'},{ch:'附近',zy:'ㄈㄨˋ ㄐㄧㄣˋ',py:'fù jìn',en:'nearby'},{ch:'超級市場',zy:'ㄔㄠ ㄐㄧˊ ㄕˋ ㄔㄤˇ',py:'supermarket',en:'supermarket'},{ch:'東西',zy:'ㄉㄨㄥ ㄒㄧ',py:'dōng xi',en:'things'},{ch:'巧克力',zy:'ㄑㄧㄠˇ ㄎㄜˋ ㄌㄧˋ',py:'chocolate',en:'chocolate'},{ch:'冰淇淋',zy:'ㄅㄧㄥ ㄑㄧˊ ㄌㄧㄣˊ',py:'ice cream',en:'ice cream'},{ch:'買',zy:'ㄇㄞˇ',py:'mǎi',en:'buy'},{ch:'牛肉',zy:'ㄋㄧㄡˊ ㄖㄡˋ',py:'niú ròu',en:'beef'},{ch:'青菜',zy:'ㄑㄧㄥ ㄘㄞˋ',py:'qīng cài',en:'vegetables'},{ch:'米',zy:'ㄇㄧˇ',py:'mǐ',en:'rice'},{ch:'可以',zy:'ㄎㄜˇ ㄧˇ',py:'kě yǐ',en:'can'},{ch:'糖果',zy:'ㄊㄤˊ ㄍㄨㄛˇ',py:'candy',en:'candy'},{ch:'魚',zy:'ㄩˊ',py:'yú',en:'fish'}],
+        L4: [{ch:'週末',zy:'ㄓㄡ ㄇㄛˋ',py:'zhōu mò',en:'weekend'},{ch:'漢堡',zy:'ㄏㄢˋ ㄅㄠˇ',py:'hàn bǎo',en:'hamburger'},{ch:'薯條',zy:'ㄕㄨˇ ㄊㄧㄠˊ',py:'shǔ tiáo',en:'fries'},{ch:'出去',zy:'ㄔㄨ ㄑㄩˋ',py:'chū qù',en:'go out'},{ch:'先',zy:'ㄒㄧㄢ',py:'xiān',en:'first'},{ch:'蛋炒飯',zy:'ㄉㄢˋ ㄔㄠˇ ㄈㄢˋ',py:'fried rice',en:'fried rice'},{ch:'晚餐',zy:'ㄨㄢˇ ㄘㄢ',py:'wǎn cān',en:'dinner'},{ch:'再',zy:'ㄗㄞˋ',py:'zài',en:'then'},{ch:'麵',zy:'ㄇㄧㄢˋ',py:'miàn',en:'noodles'},{ch:'了',zy:'ㄌㄜ˙',py:'le',en:'action done'},{ch:'湯',zy:'ㄊㄤ',py:'tāng',en:'soup'},{ch:'玉米',zy:'ㄩˋ ㄇㄧˇ',py:'yù mǐ',en:'corn'},{ch:'已經',zy:'ㄧˇ ㄐㄧㄥ',py:'yǐ jīng',en:'already'},{ch:'餓',zy:'ㄜˋ',py:'è',en:'hungry'},{ch:'快點',zy:'ㄎㄨㄞˋ ㄉㄧㄢˇ',py:'quickly',en:'hurry up'}],
+        L5: [{ch:'秋天',zy:'ㄑㄧㄡ ㄊㄧㄢ',py:'qiū tiān',en:'autumn'},{ch:'樹葉',zy:'ㄕㄨˋ ㄧㄝˋ',py:'shù yè',en:'leaf'},{ch:'變',zy:'ㄅㄧㄢˋ',py:'biàn',en:'change'},{ch:'黃',zy:'ㄏㄨㄤˊ',py:'huáng',en:'yellow'},{ch:'草',zy:'ㄘㄠˇ',py:'cǎo',en:'grass'},{ch:'還是',zy:'ㄏㄞˊ ㄕˋ',py:'hái shì',en:'still'},{ch:'綠色',zy:'ㄌㄩˋ ㄙㄜˋ',py:'lǜ sè',en:'green'},{ch:'天氣',zy:'ㄊㄧㄢ ㄑㄧˋ',py:'tiān qì',en:'weather'},{ch:'舒服',zy:'ㄕㄨ ㄈㄨˊ',py:'shū fú',en:'comfortable'},{ch:'春天',zy:'ㄔㄨㄣ ㄊㄧㄢ',py:'chūn tiān',en:'spring'},{ch:'不錯',zy:'ㄅㄨˊ ㄘㄨㄛˋ',py:'bú cuò',en:'not bad'},{ch:'顏色',zy:'ㄧㄢˊ ㄙㄜˋ',py:'yán sè',en:'color'},{ch:'時候',zy:'ㄕˊ ㄏㄡˋ',py:'shí hòu',en:'time'},{ch:'花',zy:'ㄏㄨㄚ',py:'huā',en:'flower'},{ch:'院子',zy:'ㄩㄢˋ ㄗ˙',py:'yuàn zi',en:'yard'},{ch:'紅色',zy:'ㄏㄨㄥˊ ㄙㄜˋ',py:'hóng sè',en:'red'},{ch:'白色',zy:'ㄅㄞˊ ㄙㄜˋ',py:'bái sè',en:'white'},{ch:'漂亮',zy:'ㄆㄧㄠˋ ㄌㄧㄤˋ',py:'piào liàng',en:'pretty'}],
+        L6: [{ch:'農曆',zy:'ㄋㄨㄥˊ ㄌㄧˋ',py:'nóng lì',en:'lunar'},{ch:'說',zy:'ㄕㄨㄛ',py:'shuō',en:'speak'},{ch:'新年',zy:'ㄒㄧㄣ ㄋㄧㄢˊ',py:'xīn nián',en:'New Year'},{ch:'華人',zy:'ㄏㄨㄚˊ ㄖㄣˊ',py:'huá rén',en:'Chinese people'},{ch:'下',zy:'ㄒㄧㄚˋ',py:'xià',en:'next'},{ch:'星期',zy:'ㄒㄧㄥ ㄑㄧˊ',py:'xīng qí',en:'week'},{ch:'會',zy:'ㄏㄨㄟˋ',py:'huì',en:'will'},{ch:'年糕',zy:'ㄋㄧㄢˊ ㄍㄠ',py:'nián gāo',en:'rice cake'},{ch:'那天',zy:'ㄋㄚˋ ㄊㄧㄢ',py:'nà tiān',en:'that day'},{ch:'給',zy:'ㄍㄟˇ',py:'gěi',en:'give'},{ch:'拜年',zy:'ㄅㄞˋ ㄋㄧㄢˊ',py:'bài nián',en:'New Year visit'},{ch:'台灣',zy:'ㄊㄞˊ ㄨㄢ',py:'tái wān',en:'Taiwan'},{ch:'每',zy:'ㄇㄟˇ',py:'měi',en:'each'},{ch:'紅包',zy:'ㄏㄨㄥˊ ㄅㄠ',py:'hóng bāo',en:'red envelope'},{ch:'如果',zy:'ㄖㄨˊ ㄍㄨㄛˇ',py:'rú guǒ',en:'if'},{ch:'放鞭炮',zy:'ㄈㄤˋ ㄅㄧㄢ ㄆㄠˋ',py:'firecracker',en:'firecrackers'},{ch:'貼春聯',zy:'ㄊㄧㄝ ㄔㄨㄣ ㄌㄧㄢˊ',py:'couplets',en:'couplets'}],
+        L7: [{ch:'該',zy:'ㄍㄞ',py:'gāi',en:'should'},{ch:'起床',zy:'ㄑㄧˇ ㄔㄨㄤˊ',py:'qǐ chuáng',en:'get up'},{ch:'來不及',zy:'ㄌㄞˊ ㄅㄨˋ ㄐㄧˊ',py:'lai bu ji',en:"too late"},{ch:'累',zy:'ㄌㄟˋ',py:'lèi',en:'tired'},{ch:'睡覺',zy:'ㄕㄨㄟˋ ㄐㄧㄠˋ',py:'shuì jiào',en:'sleep'},{ch:'趕快',zy:'ㄍㄢˇ ㄎㄨㄞˋ',py:'gǎn kuài',en:'hurry up'},{ch:'刷牙',zy:'ㄕㄨㄚ ㄧㄚˊ',py:'shuā yá',en:"brush teeth"},{ch:'洗澡',zy:'ㄒㄧˇ ㄗㄠˇ',py:'xǐ zǎo',en:'shower'},{ch:'昨天',zy:'ㄗㄨㄛˊ ㄊㄧㄢ',py:'zuó tiān',en:'yesterday'},{ch:'忘',zy:'ㄨㄤˋ',py:'wàng',en:'forget'},{ch:'用',zy:'ㄩㄥˋ',py:'yòng',en:'use'},{ch:'過',zy:'ㄍㄨㄛˋ',py:'guò',en:'done'},{ch:'肥皂',zy:'ㄈㄟˊ ㄗㄠˋ',py:'féi zào',en:'soap'},{ch:'知道',zy:'ㄓ ㄉㄠˋ',py:'zhī dào',en:'know'},{ch:'洗',zy:'ㄒㄧˇ',py:'xǐ',en:'wash'},{ch:'乾淨',zy:'ㄍㄢ ㄐㄧㄥˋ',py:'gān jìng',en:'clean'},{ch:'洗臉',zy:'ㄒㄧˇ ㄌㄧㄢˇ',py:'xǐ liǎn',en:"wash face"},{ch:'晚上',zy:'ㄨˇ ㄕㄤˋ',py:'wǎn shàng',en:'night'}],
+        L8: [{ch:'送給',zy:'ㄙㄨㄥˋ ㄍㄟˇ',py:'sòng gěi',en:'give'},{ch:'隻',zy:'ㄓ',py:'zhī',en:'unit'},{ch:'狗',zy:'ㄍㄡˇ',py:'gǒu',en:'dog'},{ch:'寵物',zy:'ㄔㄨㄥˇ ㄨˋ',py:'chǒng wù',en:'pet'},{ch:'帶',zy:'ㄉㄞˋ',py:'dài',en:'bring'},{ch:'牠們',zy:'ㄊㄚ ㄇㄣˊ',py:'tā men',en:'them (animals)'},{ch:'散步',zy:'ㄙㄢˋ ㄅㄨˋ',py:'sàn bù',en:'walk'},{ch:'過',zy:'ㄍㄨㄛˋ',py:'guò',en:'ever'},{ch:'去年',zy:'ㄑㄩˋ ㄋㄧㄢˊ',py:'qù nián',en:'last year'},{ch:'貓',zy:'ㄇㄠ',py:'māo',en:'cat'},{ch:'上個月',zy:'ㄕㄤˋ ㄍㄜ˙ ㄩㄝˋ',py:'last month',en:'last month'},{ch:'不見了',zy:'ㄅㄨˋ ㄐㄧㄢˋ ㄌㄜ˙',py:'lost',en:'lost'},{ch:'非常',zy:'ㄈㄟ ㄔㄤˊ',py:'fēi cháng',en:'very'},{ch:'可愛',zy:'ㄎㄜˇ ㄞˋ',py:'kě ài',en:'cute'},{ch:'兔子',zy:'ㄊㄨˋ ㄗ˙',py:'tù zi',en:'rabbit'},{ch:'餵',zy:'ㄨㄟˋ',py:'wèi',en:'feed'}],
+        L9: [{ch:'指南針',zy:'ㄓˇ ㄋㄢˊ ㄓㄣ',py:'zhǐ nán zhēn',en:'compass'},{ch:'它',zy:'ㄊㄚ',py:'tā',en:'it'},{ch:'南方',zy:'ㄋㄢˊ ㄈㄤ',py:'nán fāng',en:'south'},{ch:'北方',zy:'ㄅㄟˇ ㄈㄤ',py:'běi ㄈㄤ',en:'north'},{ch:'教室',zy:'ㄐㄧㄠˋ ㄕˋ',py:'jiào shì',en:'classroom'},{ch:'告訴',zy:'ㄍㄠˋ ㄙㄨˋ',py:'gào sù',en:'tell'},{ch:'方向',zy:'ㄈㄤ ㄒㄧㄤˋ',py:'fāng xiàng',en:'direction'},{ch:'校門口',zy:'ㄒㄧㄠˋ ㄇㄣˊ ㄎㄡˇ',py:'entrance',en:'entrance'},{ch:'足球場',zy:'ㄗㄨˊ ㄑㄧㄡˊ ㄔㄤˇ',py:'field',en:'soccer field'},{ch:'東方',zy:'ㄉㄨㄥ ㄈㄤ',py:'dōng fāng',en:'east'},{ch:'還是',zy:'ㄏㄞˊ ㄕˋ',py:'hái shì',en:'or'},{ch:'西方',zy:'ㄒㄧ ㄈㄤ',py:'xī fāng',en:'west'},{ch:'因為',zy:'ㄧㄣ ㄨㄟˋ',py:'yīn wèi',en:'because'},{ch:'所以',zy:'ㄙㄨㄛˇ ㄧˇ',py:'suǒ yǐ',en:'so'}],
+        L10: [{ch:'暑假',zy:'ㄕㄨˇ ㄐㄧㄚˋ',py:'shǔ jià',en:'vacation'},{ch:'看',zy:'ㄎㄢˋ',py:'kàn',en:'visit'},{ch:'本來',zy:'ㄅㄣˇ ㄌㄞˊ',py:'běn lái',en:'originally'},{ch:'住在',zy:'ㄓㄨˋ ㄗㄞˋ',py:'zhù zài',en:'live in'},{ch:'臺北',zy:'ㄊㄞˊ ㄅㄟˇ',py:'tái běi',en:'Taipei'},{ch:'退休',zy:'ㄊㄨㄟˋ ㄒㄧㄡ',py:'tuì xiū',en:'retire'},{ch:'舅舅',zy:'ㄐㄧㄡˋ ㄐㄧㄡ˙',py:'jiù jiu',en:'uncle'},{ch:'臺南',zy:'ㄊㄞˊ ㄋㄢˊ',py:'tái nán',en:'Tainan'},{ch:'一次',zy:'ㄧˊ ㄘˋ',py:'yí cì',en:'once'},{ch:'紐約',zy:'ㄋㄧㄡˇ ㄩㄝ',py:'niǔ yuē',en:'New York'},{ch:'旅行',zy:'ㄌㄩˇ ㄒㄧㄥˊ',py:'lǚ xíng',en:'travel'},{ch:'法國',zy:'ㄈㄚˇ ㄍㄨㄛˊ',py:'fǎ guó',en:'France'}],
+        L11: [{ch:'動物園',zy:'ㄉㄨㄥˋ ㄨˋ ㄩㄢˊ',py:'dòng wù yuán',en:'zoo'},{ch:'玩',zy:'ㄨㄢˊ',py:'wán',en:'play'},{ch:'看到',zy:'ㄎㄢˋ ㄉㄠˋ',py:'kàn dào',en:'see'},{ch:'大象',zy:'ㄉㄚˋ ㄒㄧㄤˋ',py:'dà xiàng',en:'elephant'},{ch:'老虎',zy:'ㄌㄠˇ ㄏㄨˇ',py:'lǎo hǔ',en:'tiger'},{ch:'這一次',zy:'ㄓㄜˋ ㄧˊ ㄘˋ',py:'this time',en:'this time'},{ch:'希望',zy:'ㄒㄧ ㄨㄤˋ',py:'xī wàng',en:'hope'},{ch:'熊貓',zy:'ㄒㄩㄥˊ ㄇㄠ',py:'xióng māo',en:'panda'},{ch:'猴子',zy:'ㄏㄡˊ ㄗ˙',py:'hóu zi',en:'monkey'},{ch:'不但',zy:'ㄅㄨˊ ㄉㄢˋ',py:'bú dàn',en:'not only'},{ch:'企鵝',zy:'ㄑㄧˋ ㄜˊ',py:'qì é',en:'penguin'},{ch:'胖',zy:'ㄆㄤˋ',py:'pàng',en:'fat'},{ch:'真',zy:'ㄓㄣ',py:'zhēn',en:'really'},{ch:'長頸鹿',zy:'ㄔ長 ㄐㄧㄥˇ ㄌㄨˋ',py:'giraffe',en:'giraffe'},{ch:'脖子',zy:'ㄅㄛˊ ㄗ˙',py:'bó zi',en:'neck'},{ch:'長',zy:'ㄔㄤˊ',py:'cháng',en:'long'}],
+        L12: [{ch:'網路',zy:'ㄨㄤˇ ㄌㄨˋ',py:'wǎng lù',en:'internet'},{ch:'電話',zy:'ㄉㄧㄢˋ ㄏㄨㄚˋ',py:'diàn huà',en:'phone'},{ch:'很久',zy:'ㄏㄣˇ ㄐㄧㄡˇ',py:'hěn jiǔ',en:'long time'},{ch:'說話',zy:'ㄕㄨㄛ ㄏㄨㄚˋ',py:'shuō huà',en:'speak'},{ch:'影像',zy:'ㄧㄥˇ ㄒㄧㄤˋ',py:'yǐng xiàng',en:'image'},{ch:'過來',zy:'ㄍㄨㄛˋ ㄌㄞˊ',py:'guò lái',en:'come over'},{ch:'長高',zy:'ㄓㄤˇ ㄍㄠ',py:'zhǎng gāo',en:'grow tall'},{ch:'看起來',zy:'ㄎㄢˋ ㄑㄧˇ ㄌㄞˊ',py:'looks like',en:'looks like'},{ch:'瘦',zy:'ㄕㄡˋ',py:'shòu',en:'skinny'},{ch:'啊',zy:'ㄚ',py:'a',en:'ah'},{ch:'寫',zy:'ㄒㄧㄝˇ',py:'xiě',en:'write'},{ch:'上課',zy:'ㄕㄤˋ ㄎㄜˋ',py:'attend class',en:'attend class'},{ch:'有意思',zy:'ㄧㄡˇ ㄧˋ ㄙ˙',py:'interesting',en:'interesting'},{ch:'好好',zy:'ㄏㄠˇ ㄏㄠˇ',py:'well',en:'do well'},{ch:'信',zy:'ㄒㄧㄣˋ',py:'xìn',en:'letter'},{ch:'一定',zy:'ㄧˊ ㄉㄧㄥˋ',py:'certainly',en:'definitely'},{ch:'沒問題',zy:'ㄇㄟˊ ㄨㄣˋ ㄊㄧˊ',py:'no problem',en:'no problem'}]
+    };
+
+    const defaultVocabData = JSON.parse(JSON.stringify(vocabData));
+    let globalPlayerName = "", timeElapsed = 0, isPlaying = false, isPaused = false;
+    let comboCount = 0, mistakeList = [], audioCtx = null, twVoice = null;
+    let fullLessonVocab = [], remainingVocab = [], totalWordsCount = 0, currentTarget = null;
+    let gameTimer, moleTimer;
+    let isReviewMode = false;
+
+    const timeDisplay = document.getElementById('timeDisplay');
+    const targetWord = document.getElementById('targetWord'), targetZhuyin = document.getElementById('targetZhuyin'), targetPinyin = document.getElementById('targetPinyin');
+    const board = document.getElementById('board');
+    const progressText = document.getElementById('progressText'), progressFill = document.getElementById('progressFill');
+
+    function initBoard() {
+        board.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            board.innerHTML += `<div class="hole-container"><div class="hole"></div><div class="hole-mask"><div class="mole" id="mole-${i}" onclick="whack(${i}, event)"><div class="mole-face"><div class="eye"></div><div class="nose"></div><div class="eye"></div></div><div class="mole-belly" id="belly-${i}"></div></div></div></div>`;
+        }
+    }
+
+    function handleEnter(e) { if (e.key === 'Enter') enterGame(); }
+    
+    function enterGame() {
+        const name = document.getElementById('playerNameInput').value.trim();
+        if (!name) { document.getElementById('nameError').style.display='block'; return; }
+        globalPlayerName = name;
+        const loginScreen = document.getElementById('login-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const nameDisplay = document.getElementById('displayPlayerName');
+        
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (gameScreen) gameScreen.style.display = 'flex';
+        if (nameDisplay) nameDisplay.textContent = globalPlayerName;
+    }
+
+    function goToHome() {
+        isPlaying = false; isPaused = false;
+        clearInterval(gameTimer); clearTimeout(moleTimer); hideAllMoles();
+        document.body.classList.remove('playing');
+        
+        // 重置 Combo 字樣
+        const c = document.getElementById('comboDisplay');
+        if(c) c.style.display='none';
+        comboCount = 0;
+
+        // 隱藏並重置題目區
+        const targetCont = document.getElementById('target-container');
+        if(targetCont) targetCont.style.visibility = 'hidden';
+        
+        const idsToHide = ['overlay', 'pause-overlay', 'game-screen'];
+        idsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'flex';
+    }
+
+    function restartSameGame() {
+        const overlayEl = document.getElementById('overlay');
+        if(overlayEl) overlayEl.style.display = 'none';
+        startGame();
+    }
+
+    function updateLessonDropdown() {
+        const select = document.getElementById('lesson-select');
+        if (!select) return;
+        select.innerHTML = '';
+        const dict = translations[currentLang];
+        Object.keys(vocabData).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1))).forEach(key => {
+            select.innerHTML += `<option value="${key}">${dict.lessonPrefix}${key.slice(1)}${dict.lessonSuffix}</option>`;
+        });
+        select.innerHTML += `<option value="all">${dict.allChallenge}</option>`;
+    }
+
+    function findTaiwanVoice() {
+        twVoice = speechSynthesis.getVoices().find(v => v.lang.includes('TW') || v.name.includes('Taiwan') || v.name.includes('Yating') || v.name.includes('Mei-Jia'));
+    }
+    if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = findTaiwanVoice;
+
+    function speakWord(text) {
+        if (!'speechSynthesis' in window) return;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'zh-TW'; u.rate = 0.85;
+        if (!twVoice) findTaiwanVoice();
+        if (twVoice) u.voice = twVoice;
+        speechSynthesis.speak(u);
+    }
+
+    function playSound(type) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+        osc.connect(g); g.connect(audioCtx.destination);
+        if (type==='pop'){ 
+            osc.frequency.setValueAtTime(250, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+            g.gain.setValueAtTime(0.08, 0); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1);
+            osc.start(); osc.stop(audioCtx.currentTime+0.1); 
+        } else if (type==='hit'){
+            osc.type='square'; osc.frequency.setValueAtTime(440,0); osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.1);
+            g.gain.setValueAtTime(0.12, 0); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1);
+            osc.start(); osc.stop(audioCtx.currentTime+0.1);
+        } else if (type==='wrong'){ 
+            osc.type='sawtooth'; osc.frequency.setValueAtTime(100,0); g.gain.setValueAtTime(0.1, 0); osc.start(); osc.stop(audioCtx.currentTime+0.3); 
+        } else if (type==='win'){ 
+            osc.frequency.setValueAtTime(500,0); osc.frequency.linearRampToValueAtTime(1000,audioCtx.currentTime+0.5); g.gain.setValueAtTime(0.1, 0); osc.start(); osc.stop(audioCtx.currentTime+0.5); 
+        }
+    }
+
+    function startGame() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        document.body.classList.add('playing');
+        fullLessonVocab = getVocabList(); remainingVocab = [...fullLessonVocab];
+        totalWordsCount = remainingVocab.length; timeElapsed = 0; isPlaying = true; isPaused = false; comboCount = 0; mistakeList = [];
+        isReviewMode = false; 
+        if(progressFill) progressFill.style.backgroundColor = '#66BB6A'; 
+        
+        // 重置 Combo 字樣
+        const c = document.getElementById('comboDisplay');
+        if(c) c.style.display='none';
+
+        const pauseBtn = document.getElementById('pauseBtn');
+        if(pauseBtn) pauseBtn.style.display = 'inline-block';
+        
+        const targetCont = document.getElementById('target-container');
+        if(targetCont) targetCont.style.visibility = 'visible';
+        
+        updateProgressUI(); clearInterval(gameTimer); clearTimeout(moleTimer);
+        gameTimer = setInterval(() => { timeElapsed++; if(timeDisplay) timeDisplay.textContent = timeElapsed; }, 1000);
+        setNewTarget(); popMoles();
+    }
+
+    function getVocabList() {
+        const val = document.getElementById('lesson-select').value;
+        return val === 'all' ? Object.values(vocabData).flat() : vocabData[val];
+    }
+
+    function updateProgressUI() {
+        if(!progressText || !progressFill) return;
+        const done = totalWordsCount - remainingVocab.length;
+        let modeText = isReviewMode ? translations[currentLang].reviewProgress : translations[currentLang].progress;
+        progressText.textContent = `${modeText}: ${done} / ${totalWordsCount}`;
+        progressFill.style.width = (done/totalWordsCount*100) + '%';
+        if(isReviewMode) progressFill.style.backgroundColor = '#FF9800'; 
+    }
+
+    function applyToggles() {
+        if(!targetWord || !targetZhuyin || !targetPinyin) return;
+        const showEn = document.getElementById('showEn');
+        const showZy = document.getElementById('showZy');
+        const showPy = document.getElementById('showPy');
+        
+        if(showEn) targetWord.style.display = showEn.checked ? 'block' : 'none';
+        if(showZy) targetZhuyin.style.display = showZy.checked ? 'block' : 'none';
+        if(showPy) targetPinyin.style.display = showPy.checked ? 'block' : 'none';
+    }
+
+    function setNewTarget() {
+        if (!remainingVocab.length) { 
+            if (!isReviewMode && mistakeList.length > 0) {
+                isReviewMode = true;
+                
+                // 修改：將錯題放入剩餘題庫中，並重複三次讓學生加深印象
+                remainingVocab = [];
+                for (let i = 0; i < 3; i++) {
+                    remainingVocab = remainingVocab.concat([...mistakeList]);
+                }
+                
+                totalWordsCount = remainingVocab.length;
+                updateProgressUI();
+                
+                const t = document.getElementById("toast-msg"); 
+                if(t) { t.textContent = translations[currentLang].toastReview; t.className = "show"; setTimeout(()=>t.className="", 3000); }
+            } else {
+                endGame(); 
+                return; 
+            }
+        }
+        currentTarget = remainingVocab[Math.floor(Math.random()*remainingVocab.length)];
+        if(targetWord) targetWord.textContent = currentTarget.en; 
+        if(targetZhuyin) targetZhuyin.textContent = currentTarget.zy; 
+        if(targetPinyin) targetPinyin.textContent = currentTarget.py;
+        applyToggles();
+    }
+
+    function popMoles() {
+        if (!isPlaying || isPaused || !remainingVocab.length) return;
+        hideAllMoles(); playSound('pop');
+        const count = Math.floor(Math.random()*3)+2;
+        let h = [0,1,2,3,4,5,6,7,8].sort(()=>0.5-Math.random()).slice(0, count);
+        let wArr = [currentTarget.ch];
+        let others = fullLessonVocab.filter(v=>v.ch!==currentTarget.ch).sort(()=>0.5-Math.random());
+        for(let i=0; i<count-1; i++) if(others[i]) wArr.push(others[i].ch);
+        wArr.sort(()=>0.5-Math.random());
+        h.forEach((idx, i) => {
+            const m = document.getElementById(`mole-${idx}`), b = document.getElementById(`belly-${idx}`);
+            if(!m || !b) return;
+            const w = wArr[i]; b.dataset.word = w;
+            if(w.length===4) b.innerHTML = `${w.slice(0,2)}<br>${w.slice(2,4)}`;
+            else b.textContent = w;
+            m.classList.remove('wrong'); m.classList.add('up');
+        });
+        let speed = 1; 
+        const diffSel = document.getElementById('difficulty-select');
+        const d = diffSel ? diffSel.value : 'normal';
+        if(d==='easy') speed=1.5; if(d==='hard') speed=0.7;
+        moleTimer = setTimeout(popMoles, (Math.random()*1000+1600)*speed);
+    }
+
+    function hideAllMoles() { 
+        for(let i=0; i<9; i++) {
+            const m = document.getElementById(`mole-${i}`);
+            if(m) m.classList.remove('up'); 
+        }
+    }
+
+    function showFloatingText(x, y, text, type) {
+        const floatEl = document.createElement('div');
+        floatEl.className = `floating-text ${type}`;
+        floatEl.textContent = text;
+        floatEl.style.left = (x - 20) + 'px';
+        floatEl.style.top = (y - 20) + 'px';
+        document.body.appendChild(floatEl);
+        setTimeout(() => floatEl.remove(), 1000);
+    }
+
+    function whack(idx, e) {
+        if (!isPlaying || isPaused) return;
+        const m = document.getElementById(`mole-${idx}`), b = document.getElementById(`belly-${idx}`);
+        if (!m || !b || !m.classList.contains('up')) return;
+        playSound('hit');
+        
+        if (b.dataset.word === currentTarget.ch) {
+            showFloatingText(e.clientX, e.clientY, "✔️", "positive");
+            createHitEffect(e.clientX, e.clientY); 
+            speakWord(currentTarget.ch); 
+            comboCount++;
+            const c = document.getElementById('comboDisplay');
+            if(comboCount>=2 && c){
+                c.textContent = `${comboCount} ${translations[currentLang].combo}`; c.style.display='block';
+                c.animate([{transform:'scale(1)'},{transform:'scale(1.2)'}], 150);
+            }
+            m.classList.remove('up'); 
+            
+            // 修改：每次答對只從陣列中移除「一個」該生詞，確保重複的題目需要打對相應次數
+            const removeIdx = remainingVocab.findIndex(v=>v.ch===currentTarget.ch);
+            if(removeIdx !== -1) remainingVocab.splice(removeIdx, 1);
+            
+            updateProgressUI(); clearTimeout(moleTimer); setNewTarget();
+            if(remainingVocab.length) setTimeout(popMoles, 300);
+        } else {
+            showFloatingText(e.clientX, e.clientY, "❌", "negative");
+            playSound('wrong'); comboCount=0; 
+            const c = document.getElementById('comboDisplay');
+            if(c) c.style.display='none';
+            if(!mistakeList.find(x=>x.ch===currentTarget.ch)) mistakeList.push(currentTarget);
+            m.classList.add('wrong'); setTimeout(()=>m.classList.remove('wrong'), 400);
+        }
+    }
+
+    function createHitEffect(x, y) {
+        for (let i = 0; i < 8; i++) {
+            const p = document.createElement('div'); p.className = 'hit-particle';
+            p.style.left = x+'px'; p.style.top = y+'px';
+            p.style.backgroundColor = ['#FFEB3B','#FF9800','#4CAF50','#03A9F4','#FF4081'][Math.floor(Math.random()*5)];
+            document.body.appendChild(p);
+            const a = Math.random()*Math.PI*2, v = 50;
+            p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${Math.cos(a)*v}px,${Math.sin(a)*v}px) scale(0)`,opacity:0}], 600).onfinish=()=>p.remove();
+        }
+    }
+
+    function createWinEffect() {
+        for (let i = 0; i < 60; i++) {
+            const c = document.createElement('div'); c.className = 'confetti';
+            c.style.left = Math.random()*100+'vw'; c.style.backgroundColor = `hsl(${Math.random()*360}, 70%, 50%)`;
+            c.style.animationDuration = (Math.random()*2+2)+'s';
+            document.body.appendChild(c); setTimeout(()=>c.remove(), 4000);
+        }
+    }
+
+    function endGame() {
+        isPlaying = false; document.body.classList.remove('playing');
+        clearInterval(gameTimer); clearTimeout(moleTimer); hideAllMoles();
+        playSound('win'); createWinEffect();
+
+        // 確保結束時隱藏 Combo 連擊字樣
+        const c = document.getElementById('comboDisplay');
+        if(c) c.style.display='none';
+        comboCount = 0;
+
+        // 隱藏並重置題目區
+        const targetCont = document.getElementById('target-container');
+        if(targetCont) targetCont.style.visibility = 'hidden';
+        if(targetWord) targetWord.textContent = "..."; 
+        if(targetZhuyin) targetZhuyin.textContent = "..."; 
+        if(targetPinyin) targetPinyin.textContent = "...";
+        
+        const resTitle = document.getElementById('resultTitle');
+        if(resTitle) resTitle.innerHTML = currentLang === 'en' ? `🎉 ${globalPlayerName}, Level Cleared! 🎉` : `🎉 ${globalPlayerName}，完美過關！ 🎉`;
+        
+        const fTime = document.getElementById('finalTime');
+        if(fTime) fTime.textContent = timeElapsed;
+        
+        const misCont = document.getElementById('mistakes-container');
+        const misList = document.getElementById('mistakesList');
+        if (mistakeList.length > 0 && misCont && misList) {
+            misCont.style.display = 'block';
+            misList.innerHTML = mistakeList.map(m => `<span style="background:white;padding:4px 8px;border-radius:10px;border:2px solid #FFCC80;font-weight:900;color:#D84315;">${m.ch} <span style="font-size:14px;color:#8E24AA;margin-left:2px;">(${m.zy})</span></span>`).join('');
+        } else if (misCont) {
+            misCont.style.display = 'none';
+        }
+        
+        const overEl = document.getElementById('overlay');
+        if(overEl) overEl.style.display = 'flex';
+    }
+
+    function togglePause() {
+        if (!isPlaying) return;
+        isPaused = !isPaused;
+        const pauseOverlay = document.getElementById('pause-overlay');
+        if (isPaused) { 
+            clearInterval(gameTimer); clearTimeout(moleTimer); hideAllMoles(); 
+            if(pauseOverlay) pauseOverlay.style.display = 'flex'; 
+        } else { 
+            if(pauseOverlay) pauseOverlay.style.display = 'none'; 
+            gameTimer = setInterval(() => { timeElapsed++; if(timeDisplay) timeDisplay.textContent = timeElapsed; }, 1000); 
+            setTimeout(popMoles, 500); 
+        }
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+
+    function copyLessonLink() {
+        const select = document.getElementById('lesson-select');
+        if(!select) return;
+        const url = window.location.href.split('?')[0] + '?lesson=' + select.value;
+        const i = document.createElement("input"); i.value = url; document.body.appendChild(i); i.select(); document.execCommand("copy"); document.body.removeChild(i);
+        const t = document.getElementById("toast-msg"); 
+        if(t) { t.textContent = translations[currentLang].toastCopied; t.className = "show"; setTimeout(()=>t.className="", 3000); }
+    }
+
+    function saveCustomVocab() {
+        const inputEl = document.getElementById('csvInput');
+        if(!inputEl) return;
+        const lines = inputEl.value.trim().split('\n');
+        const data = {};
+        lines.forEach(l => { const c = l.split(','); if (c.length>=5) { if(!data[c[0]]) data[c[0]] = []; data[c[0]].push({ch:c[1], zy:c[2], py:c[3], en:c[4]}); } });
+        if(Object.keys(data).length){ 
+            vocabData = data; localStorage.setItem('customVocab', JSON.stringify(data)); 
+            updateLessonDropdown(); 
+            const msg = document.getElementById('settings-msg');
+            if(msg) msg.style.display='block'; 
+        }
+    }
+
+    function restoreDefaultVocab() { 
+        vocabData = JSON.parse(JSON.stringify(defaultVocabData)); 
+        localStorage.removeItem('customVocab'); updateLessonDropdown(); 
+    }
+
+    window.onload = () => {
+        initBoard();
+        const saved = localStorage.getItem('customVocab');
+        if (saved) vocabData = JSON.parse(saved);
+        updateLessonDropdown();
+        const p = new URLSearchParams(window.location.search).get('lesson');
+        const select = document.getElementById('lesson-select');
+        if (p && select && select.querySelector(`option[value="${p}"]`)) select.value = p;
+    };
+    document.addEventListener('contextmenu', e => { e.preventDefault(); });
+</script>
+</body>
+</html>
