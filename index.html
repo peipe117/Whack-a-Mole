@@ -97,8 +97,9 @@
         h1.game-title { margin: 0; color: #FF7043; font-size: 22px; font-weight: 900; }
         .player-greeting { font-size: 15px; font-weight: 800; color: #0288D1; background: #E1F5FE; padding: 4px 10px; border-radius: 10px; }
         
-        /* 修改：合併為單一控制列，電腦版自動排成一行，手機版自動換行 */
-        .controls-row { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 10px; width: 100%; }
+        /* 修改：將控制列分為下拉選單與按鈕群組，避免不規則換行 */
+        .controls-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-bottom: 10px; width: 100%; }
+        .select-group, .btn-group { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
         
         /* 增加 max-width 讓選單在排成一排時不會佔用過多空間 */
         select { font-family: inherit; font-size: 14px; padding: 6px 10px; border-radius: 10px; border: 2px solid #CFD8DC; font-weight: 700; color: var(--text-dark); background: #F8FDFF; outline: none; cursor: pointer; transition: 0.2s; max-width: 180px; }
@@ -215,13 +216,17 @@
             .login-box h1 { font-size: 26px; }
             header { padding: 10px 10px; margin-top: 0; }
             
-            .header-top { flex-direction: column; gap: 8px; margin-bottom: 8px; }
-            h1.game-title { font-size: 20px; text-align: center; }
+            /* 修改：鎖定標題與姓名在同一行 */
+            .header-top { flex-direction: row; justify-content: space-between; align-items: center; gap: 5px; margin-bottom: 8px; }
+            h1.game-title { font-size: 16px; text-align: left; white-space: nowrap; }
+            .player-greeting { font-size: 13px; padding: 4px 8px; white-space: nowrap; }
             
-            /* 手機版允許彈性換行，並稍微限制選單寬度 */
-            .controls-row { flex-direction: row; justify-content: center; gap: 6px; margin-bottom: 8px; }
-            select, .btn-start-small, .share-btn { font-size: 13px; padding: 6px 8px; }
-            select { max-width: 45%; }
+            /* 修改：下拉選單一排、按鈕固定一排 */
+            .controls-container { gap: 8px; margin-bottom: 8px; }
+            .select-group { width: 100%; justify-content: center; }
+            .btn-group { width: 100%; justify-content: center; gap: 5px; }
+            select, .btn-start-small, .share-btn { font-size: 12px; padding: 6px 8px; }
+            select { max-width: 48%; }
             
             .target-word { font-size: 24px; }
             #comboDisplay { top: 50px; right: 10px; font-size: 24px; }
@@ -273,19 +278,25 @@
                 <h1 class="game-title" data-i18n="title">🐹 生詞闖關打地鼠</h1>
                 <span class="player-greeting"><span data-i18n="player">玩家：</span><span id="displayPlayerName"></span></span>
             </div>
-            <!-- 合併後的控制區塊 -->
-            <div class="controls-row">
-                <select id="lesson-select"></select>
-                <select id="difficulty-select">
-                    <option value="easy" data-i18n="diffEasy">🟢 簡單</option>
-                    <option value="normal" selected data-i18n="diffNormal">🟡 中等</option>
-                    <option value="hard" data-i18n="diffHard">🔴 困難</option>
-                </select>
-                <button class="btn-start-small btn-home-small" onclick="goToHome()" data-i18n="btnHome">🏠 首頁</button>
-                <button class="share-btn" onclick="copyLessonLink()" title="複製連結">🔗</button>
-                <button class="btn-start-small" onclick="startGame()" data-i18n="btnStart">▶️ 開始</button>
-                <button class="btn-start-small btn-pause-small" id="pauseBtn" onclick="togglePause()" style="display:none;" data-i18n="btnPause">⏸️ 暫停</button>
+            
+            <!-- 修改：將選單與按鈕分組，避免破版 -->
+            <div class="controls-container">
+                <div class="select-group">
+                    <select id="lesson-select"></select>
+                    <select id="difficulty-select">
+                        <option value="easy" data-i18n="diffEasy">🟢 簡單</option>
+                        <option value="normal" selected data-i18n="diffNormal">🟡 中等</option>
+                        <option value="hard" data-i18n="diffHard">🔴 困難</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-start-small btn-home-small" onclick="goToHome()" data-i18n="btnHome">🏠 首頁</button>
+                    <button class="share-btn" onclick="copyLessonLink()" title="複製連結">🔗</button>
+                    <button class="btn-start-small" onclick="startGame()" data-i18n="btnStart">▶️ 開始</button>
+                    <button class="btn-start-small btn-pause-small" id="pauseBtn" onclick="togglePause()" style="display:none;" data-i18n="btnPause">⏸️ 暫停</button>
+                </div>
             </div>
+
             <div class="status-row">
                 <div class="options-row">
                     <label><input type="checkbox" id="showEn" checked onchange="applyToggles()"> <span data-i18n="lblEn">英文</span></label>
